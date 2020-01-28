@@ -30,4 +30,9 @@ module.exports = (robot) ->
     title = queue + ' ' + itemNumber
     url = "https://engineering.purdue.edu/webqueue/?action=show_item&queue=" + queue + "&number=" + itemNumber + "&archive="
     newMessage = {"attachments": [{"fallback": "Ticket URL","callback_id": "ticketer", "color": "#3AA3E3", "attachment_type": "default", "actions": [{"text": title, "type": "button", "url": url}]}]}
-    res.send newMessage
+
+    if res.message.thread_ts
+      res.send newMessage
+    else
+      res.message.thread_ts = res.message.id;
+      res.send newMessage
