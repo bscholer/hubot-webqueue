@@ -12,9 +12,10 @@
   //   None
 
   // Author:
-  //   Brad Clark <bdashrad@gmail.com>
+  //   Ben Scholer <benscholer3248511@gmail.com>
   module.exports = function (robot) {
     var regex;
+    // The part of this in brackets [] is where different separators should be added. For example, if somebody uses a , in their ticket numbers (ce,32)
     regex = /(?:^|\s)(aae|abe|acmaint|alexa|app|backup|bidc|bio|bme|ce|cgt|che|cnit|comm|coral|dave|doe|dp|dpweb|ece|ecnaccts|eee|emacs|ene|epics|flex|graddb|hardware|helpdesk|ie|imi|ipad-help|itap|latex|linux|machelp|mailman|mathematica|me|mecl|mse|ne|perl|portals|potr|price|printers|queue|root-mail|sitemgrs|software|sscan|steam|swt|tech|trash|uds|udsprojects|vet|vprweb|wang|webmaster|webmse|webprojects|windows|zsite)[\s|.|-]?(\d+)\b/i; // start of line or space // case insensitive
     return robot.hear(regex, function (res) {
       var itemNumber, newMessage, queue, title, url;
