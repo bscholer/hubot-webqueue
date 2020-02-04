@@ -53,19 +53,20 @@
 
       function handleTicket(queue, itemNumber) {
         let title = queue.toUpperCase() + ' ' + itemNumber;
+        if (itemNumber === "69") title = "heh, " + title;
         let url = "https://engineering.purdue.edu/webqueue/?action=show_item&queue=" + queue + "&number=" + itemNumber + "&archive=";
         // Download the ticket's file from pier
-        client.scp("bscholer:@pier.ecn.purdue.edu:/home/pier/e/queue/Mail/" + queue + "/" + itemNumber, './' + queue + itemNumber, function (err) {
+        client.scp("bscholer:PASSWORD@pier.ecn.purdue.edu:/home/pier/e/queue/Mail/" + queue + "/" + itemNumber, './downloadedTickets/' + queue + itemNumber, function (err) {
           // If anything went wrong (almost always when someone posts a ticket that doesn't exist), just return.
           if (err) {
-            console.error(err);
+            console.error("No such file!");
             sendMessage({"text": "Item " + title + " doesn't exist in the queue."});
             return;
           }
 
           let subject, fromPerson, forPerson, status;
           // Open and read the downloaded file
-          fs.readFile('./' + queue + itemNumber, {encoding: 'utf-8'}, function (err, data) {
+          fs.readFile('./downloadedTickets/' + queue + itemNumber, {encoding: 'utf-8'}, function (err, data) {
             // If it worked
             if (!err) {
               // Get the subject, from, for, and status lines
@@ -121,7 +122,7 @@
           });
 
           // Delete the downloaded ticket
-          fs.unlink('./' + queue + itemNumber, function (err) {
+          fs.unlink('./downloadedTickets/' + queue + itemNumber, function (err) {
             if (err) console.error(err);
           });
         });
