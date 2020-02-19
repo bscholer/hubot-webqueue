@@ -14,45 +14,33 @@
   // Author:
   //   Ben Scholer <benscholer3248511@gmail.com>
   module.exports = function (robot) {
-    //scp2 for downloading tickets from pier, fs for reading those downloaded tickets
-    var client = require('scp2');
-    var fs = require('fs');
 
     //Regex stuff
-    var regex, multipleSameQueueRegex, subjectRegex, fromRegex, forRegex, statusRegex, shortRegex, windowsRegex;
-    // The part of this in brackets [] is where different separators should be added. For example, if somebody uses a , in their ticket numbers (ce,32)
-    regex = /(?:^|\b)(aae|abe|acmaint|alexa|app|backup|bidc|bio|bme|ce|cgt|che|cnit|comm|coral|dave|doe|dp|dpweb|ece|ecnaccts|eee|emacs|ene|epics|flex|graddb|hardware|helpdesk|ie|imi|ipad-help|itap|latex|linux|machelp|mailman|mathematica|me|mecl|mse|ne|perl|portals|potr|price|printers|queue|root-mail|sitemgrs|software|sscan|steam|swt|tech|trash|uds|udsprojects|vet|vprweb|wang|webmaster|webmse|webprojects|windows|zsite)[\s|.|-|#]+?(\d{1,3})\b/gmi;
-    // regex = /(?:^|\s)(aae|abe|acmaint|alexa|app|backup|bidc|bio|bme|ce|cgt|che|cnit|comm|coral|dave|doe|dp|dpweb|ece|ecnaccts|eee|emacs|ene|epics|flex|graddb|hardware|helpdesk|ie|imi|ipad-help|itap|latex|linux|machelp|mailman|mathematica|me|mecl|mse|ne|perl|portals|potr|price|printers|queue|root-mail|sitemgrs|software|sscan|steam|swt|tech|trash|uds|udsprojects|vet|vprweb|wang|webmaster|webmse|webprojects|windows|zsite)[\s|.|-]?(\d+)($|.+)?/i;
-    multipleSameQueueRegex = /(?:^|\b)(aae|abe|acmaint|alexa|app|backup|bidc|bio|bme|ce|cgt|che|cnit|comm|coral|dave|doe|dp|dpweb|ece|ecnaccts|eee|emacs|ene|epics|flex|graddb|hardware|helpdesk|ie|imi|ipad-help|itap|latex|linux|machelp|mailman|mathematica|me|mecl|mse|ne|perl|portals|potr|price|printers|queue|root-mail|sitemgrs|software|sscan|steam|swt|tech|trash|uds|udsprojects|vet|vprweb|wang|webmaster|webmse|webprojects|windows|zsite)[\s|.|-|#]+?(\d{1,3})\b(\s|and|or|\/|-|,)*(\d{1,3})/i;
-    shortRegex = /([A-Za-z]+)[\s|.|-|#]+?(\d{1,3})/i;
-    subjectRegex = /Subject: .+/;
-    fromRegex = /From:.+/;
-    forRegex = /(?<=QAssigned-To: )(.+)/;
-    statusRegex = /(?<=QStatus: )(.+)/;
-    // windowsRegex = /(7|8(\.1)?|3(\.1|\.0)|10|95|98|2000|1\.0[1-4]|2\.(03|1[0|1]))$/i;
+    var regex, queueRegex, numberRegex;
 
-    let tickets = [];
+    // Regex used to initially filter out the chunks of text containing ticket numbers (queue mention).
+    // The part of this in brackets [] is where different separators should be added. For example, if somebody uses a , in their ticket numbers (ce,32)
+    regex = /(?:^|\b)(aae|abe|acmaint|alexa|app|backup|bidc|bio|bme|ce|cgt|che|cnit|comm|coral|dave|doe|dp|dpweb|ece|ecnaccts|eee|emacs|ene|epics|flex|graddb|hardware|helpdesk|ie|imi|ipad-help|itap|latex|linux|machelp|mailman|mathematica|me|mecl|mse|ne|perl|portals|potr|price|printers|queue|root-mail|sitemgrs|software|sscan|steam|swt|tech|trash|uds|udsprojects|vet|vprweb|wang|webmaster|webmse|webprojects|windows|zsite)[\s|.|-|#]+?(\d{1,3})\b((\s|and|or|\/|-|,)*((\d{1,3})))*/gmi;
+    // Regex used to grab the queue name once we already found the queue mention
+    queueRegex = /(^[A-Za-z]+)(.+)/i;
+    // Regex used to find the numbers that are part of the queue mention.
+    numberRegex = /(\d+)/ig;
 
     //Called when a new message matching the regex comes through
     return robot.hear(regex, function (res) {
-      let msg = res.message.rawMessage.text;
+      console.log(JSON.stringify(res.match));
+      for (let queueMention of res.match) {
 
-      // See if the message has multiple items from the same queue referenced, but only that.
-      if (msg.match(multipleSameQueueRegex) && res.match.length === 1) {
-        let match = msg.match(multipleSameQueueRegex);
-        handleTicket(match[1], match[2]);
-        handleTicket(match[1], match[4]);
-        //Otherwise, assume there are one or more distinct items mentioned.
-      } else {
-        //Separate/combine parts of the regex match, and make the URL
-        tickets = res.match;
-        console.log(tickets);
-        var itemNumber, queue;
-        // return if msg.subtype is 'bot_message'
-        for (let item of res.match) {
-          queue = item.match(shortRegex)[1].toLowerCase();
-          itemNumber = item.match(shortRegex)[2].toLowerCase();
-
+        // Match the queue name
+        let queueMatch = queueMention.match(queueRegex);
+        // Get the queue name
+        let queue = queueMatch[1].toLowerCase();
+        // Get the string of numbers after.
+        let numbers = queueMatch[2];
+        // Match the individual numbers from the string of them.
+        let numbersMatch = numbers.match(numberRegex);
+        // Iterate over each and send details to handleTicket()
+        for (let itemNumber of numbersMatch) {
           handleTicket(queue, itemNumber);
         }
       }
@@ -63,7 +51,6 @@
         let title = queue.toUpperCase() + ' ' + itemNumber;
         let url = "https://engineering.purdue.edu/webqueue/?action=show_item&queue=" + queue + "&number=" + itemNumber + "&archive=";
 
-        // CODE WITHOUT TICKET DETAILS
         // Put together the fancy message with the button
         let newMessage = {
           "attachments": [
@@ -89,7 +76,6 @@
         // Per sundeep, bot replies shouldn't be in threads, unless the message was already a thread.
         console.log("Message sent");
         return res.send(message);
-
       }
     });
   };
