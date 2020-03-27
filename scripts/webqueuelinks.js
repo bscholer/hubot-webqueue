@@ -20,7 +20,7 @@
 
     // Regex used to initially filter out the chunks of text containing ticket numbers (queue mention).
     // The part of this in brackets [] is where different separators should be added. For example, if somebody uses a , in their ticket numbers (ce,32)
-    regex = /(?:^|\b)(aae|abe|acmaint|alexa|app|backup|bidc|bio|bme|ce|cgt|che|cnit|comm|coral|dave|doe|dp|dpweb|ece|ecnaccts|eee|emacs|ene|epics|flex|graddb|hardware|helpdesk|ie|imi|ipad-help|itap|latex|linux|machelp|mailman|mathematica|me|mecl|mse|ne|perl|portals|potr|price|printers|queue|root-mail|sitemgrs|software|sscan|steam|swt|tech|trash|uds|udsprojects|vet|vprweb|wang|webmaster|webmse|webprojects|windows|zsite)[\s|.|-|#]+?(\d{1,3})\b((\s|and|or|\/|-|,)*((\d{1,3})))*/gmi;
+    regex = /(?:^|\b)(aae|abe|acmaint|alexa|app|backup|bidc|bio|bme|ce|cgt|che|cnit|comm|coral|dave|doe|dp|dpweb|ece|ecnaccts|eee|emacs|ene|epics|flex|graddb|hardware|helpdesk|ie|imi|ipad-help|itap|latex|linux|machelp|mailman|mathematica|me|mecl|mse|ne|perl|portals|potr|price|printers|queue|root-mail|sitemgrs|software|sscan|steam|swt|tech|trash|uds|udsprojects|vet|vprweb|wang|webmaster|webmse|webprojects|windows|zsite)[\s](\d{1,3})\b((\s|and|or|\/|-|,)*((\d{1,3})))*/gmi;
     // Regex used to grab the queue name once we already found the queue mention
     queueRegex = /(^[A-Za-z]+)(.+)/i;
     // Regex used to find the numbers that are part of the queue mention.
